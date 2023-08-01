@@ -111,11 +111,11 @@ export class CoinService implements OnModuleInit {
     coins.forEach(async (coin) => {
       try {
         var res = await axios.get(
-          `https://pro-api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coin.name}&order=market_cap_desc&sparkline=true&x_cg_pro_api_key=${process.env.COINGECKO_API_KEY}`,
+          `https://pro-api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coin.name}&order=market_cap_desc&sparkline=true`,
         );
 
         var res2 = await axios.get(
-          `https://pro-api.coingecko.com/api/v3/coins/markets?vs_currency=eur&ids=${coin.name}&order=market_cap_desc&sparkline=false&x_cg_pro_api_key=${process.env.COINGECKO_API_KEY}`,
+          `https://pro-api.coingecko.com/api/v3/coins/markets?vs_currency=eur&ids=${coin.name}&order=market_cap_desc&sparkline=false`,
         );
 
         const data = res.data[0];

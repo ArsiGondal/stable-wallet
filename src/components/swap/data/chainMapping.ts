@@ -11,7 +11,7 @@ export const chainMapping = {
   },
   '1': {
     chain: 'Ethereum',
-    rpc: 'https://eth-mainnet.nodereal.io/v1/1659dfb40aa24bbb8153a677b98064d7',
+    rpc: 'https://rpc.ankr.com/eth',
     reserveHandler_address: '0x6e14f48576265272B6CAA3A7cC500a26050Be64E',
     oneSplit_address: '0x5e9A385a15cDE1b149Cb215d9cF3151096A37D67',
     NATIVE: {

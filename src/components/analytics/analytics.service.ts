@@ -61,7 +61,7 @@ export class AnalyticsService implements OnModuleInit {
     date.setUTCHours(londonHours - 1);
     date.setUTCMinutes(londonMinutes);
 
-    this.scheduleUpdateCoin(date);
+    // this.scheduleUpdateCoin(date);
   }
 
   private scheduleUpdateCoin(date) {

@@ -45,7 +45,7 @@ export class SwapService {
     @InjectModel('SwapHistory') private _swapHistoryModel: Model<SwapHistory>,
     @InjectModel('BridgeFee') private _bridgeFeeModel: Model<BridgeFee>,
     private _walletService: WalletService,
-    private _statService:StatsService,
+    private _statService: StatsService,
   ) {
     this.web3 = new Web3(process.env.POLYGON_RPC);
     this.initializeWeb3();
@@ -141,6 +141,7 @@ export class SwapService {
 
     params.srcChainId = parseInt(params.srcChainId);
     params.destChainId = parseInt(params.destChainId);
+    params.widgetId = 24;
 
     try {
       const res = await axios.get(pathUrl, { params });
@@ -267,8 +268,8 @@ export class SwapService {
         } else {
           this._statService.methodCalled({
             chainID: swapDto.fromChainId,
-            methodName: "eth_getBalance",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_getBalance',
+            senderAddress: wallet?.walletAddress,
           });
           userBalance = await this.web3Instances[
             swapDto.fromChainId

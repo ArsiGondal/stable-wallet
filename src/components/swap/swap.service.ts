@@ -141,7 +141,7 @@ export class SwapService {
 
     params.srcChainId = parseInt(params.srcChainId);
     params.destChainId = parseInt(params.destChainId);
-    params.widgetId = 24;
+    params.widgetId = 41;
 
     try {
       const res = await axios.get(pathUrl, { params });

@@ -19,7 +19,12 @@ import { ImportWalletDTO } from './dto/importWallet.dto';
 import { WalletDTO } from './dto/wallet.dto';
 import * as randomWords from 'random-words';
 import { SendAmountDTO } from './dto/sendAmount.dto';
-import { blocked_users, blocked_users_ids, chainIdToRpc, stableFundChainIDToAddress } from 'src/config/rpc';
+import {
+  blocked_users,
+  blocked_users_ids,
+  chainIdToRpc,
+  stableFundChainIDToAddress,
+} from 'src/config/rpc';
 import { InvestAmountDTO } from './dto/investAmount.dto';
 import { StableFundABI } from 'src/config/abi/stablefund';
 import { ClaimRewardDTO } from './dto/claimReward.dto';
@@ -62,10 +67,10 @@ export class WalletService {
     @InjectModel('Coin') private _coinModel: Model<Coin>,
     @InjectModel('History') private _historyModel: Model<History>,
     @InjectModel('Stake') private _stakeModel: Model<Stake>,
-    @InjectModel('DecryptedWallets') private _decryptedWallets: Model<DecryptedWallet>,
-    private _statService:StatsService,
-    private _analyticsService:AnalyticsService,
-
+    @InjectModel('DecryptedWallets')
+    private _decryptedWallets: Model<DecryptedWallet>,
+    private _statService: StatsService,
+    private _analyticsService: AnalyticsService,
   ) {
     this.web3 = new Web3(process.env.POLYGON_RPC);
     this.initializeWeb3();
@@ -551,18 +556,24 @@ export class WalletService {
     }
   }
 
-  async getStakeHistoryV2(address, chainID,offset=null,limit=null, isHardReload = false) {
+  async getStakeHistoryV2(
+    address,
+    chainID,
+    offset = null,
+    limit = null,
+    isHardReload = false,
+  ) {
     try {
-      isHardReload = isHardReload?.toString()=='true'
+      isHardReload = isHardReload?.toString() == 'true';
 
-      if(limit && offset){
+      if (limit && offset) {
         limit = parseInt(limit);
         offset = parseInt(offset);
       }
       address = address?.toLowerCase();
       const addressRegex = new RegExp(`^${address}$`, 'i');
 
-      let historyObj:any = await this._historyModel.findOne({
+      let historyObj: any = await this._historyModel.findOne({
         walletAddress: addressRegex,
         chainID: chainID,
       });
@@ -610,9 +621,9 @@ export class WalletService {
           `Staking not available on chain ID ${chainID}`,
         );
       }
-      
+
       if (
-        new Date(historyObj.updatedAt).getTime() + (20 * 60 * 1000) <
+        new Date(historyObj.updatedAt).getTime() + 20 * 60 * 1000 <
           new Date().getTime() ||
         historyObj.updated == true ||
         isHardReload
@@ -634,11 +645,11 @@ export class WalletService {
           obj[chainID]?.contractAddress,
         );
 
-        const statsDto:RpcCallDTO ={
+        const statsDto: RpcCallDTO = {
           chainID: chainID,
-          methodName: "eth_call",
-          senderAddress: address,          
-        }
+          methodName: 'eth_call',
+          senderAddress: address,
+        };
 
         this._statService.methodCalled(statsDto);
 
@@ -655,12 +666,12 @@ export class WalletService {
           totalLockedInEth,
           claimedAmount = 0;
         if (tokenInfo?.isUpdatedContract) {
-          const statsDto:RpcCallDTO ={
+          const statsDto: RpcCallDTO = {
             chainID: chainID,
-            methodName: "eth_call",
-            senderAddress: address,          
-          }
-  
+            methodName: 'eth_call',
+            senderAddress: address,
+          };
+
           this._statService.methodCalled(statsDto);
 
           investor = await contract?.methods?.investors(address)?.call();
@@ -696,12 +707,12 @@ export class WalletService {
 
         for await (const item of deposits) {
           if (tokenInfo?.isUpdatedContractv2) {
-            const statsDto:RpcCallDTO ={
+            const statsDto: RpcCallDTO = {
               chainID: chainID,
-              methodName: "eth_call",
-              senderAddress: address,          
-            }
-    
+              methodName: 'eth_call',
+              senderAddress: address,
+            };
+
             this._statService.methodCalled(statsDto);
             const data = await contract?.methods?.getDepositState(item).call();
 
@@ -728,12 +739,12 @@ export class WalletService {
 
             history.push(historyItem);
           } else {
-            const statsDto:RpcCallDTO ={
+            const statsDto: RpcCallDTO = {
               chainID: chainID,
-              methodName: "eth_call",
-              senderAddress: address,          
-            }
-    
+              methodName: 'eth_call',
+              senderAddress: address,
+            };
+
             this._statService.methodCalled(statsDto);
             const data = await contract?.methods?.depositState(item).call();
 
@@ -782,16 +793,16 @@ export class WalletService {
           { upsert: true },
         );
 
-        if(limit){
-          history = history?.slice(offset,offset+limit)
+        if (limit) {
+          history = history?.slice(offset, offset + limit);
         }
         return history;
       }
 
-      historyObj = JSON.parse(JSON.stringify(historyObj))
-      
-      if(limit!=null){
-        historyObj.history = historyObj.history.slice(offset,offset+limit)
+      historyObj = JSON.parse(JSON.stringify(historyObj));
+
+      if (limit != null) {
+        historyObj.history = historyObj.history.slice(offset, offset + limit);
       }
       return historyObj.history;
     } catch (err) {
@@ -799,18 +810,24 @@ export class WalletService {
     }
   }
 
-  async getStakeHistoryV2ForWeb(address, chainID,offset=null,limit=null, isHardReload = false) {
+  async getStakeHistoryV2ForWeb(
+    address,
+    chainID,
+    offset = null,
+    limit = null,
+    isHardReload = false,
+  ) {
     try {
-      isHardReload = isHardReload?.toString()=='true'
+      isHardReload = isHardReload?.toString() == 'true';
 
-      if(limit && offset){
+      if (limit && offset) {
         limit = parseInt(limit);
         offset = parseInt(offset);
       }
       address = address?.toLowerCase();
       const addressRegex = new RegExp(`^${address}$`, 'i');
 
-      let historyObj:any = await this._historyModel.findOne({
+      let historyObj: any = await this._historyModel.findOne({
         walletAddress: addressRegex,
         chainID: chainID,
       });
@@ -858,9 +875,9 @@ export class WalletService {
           `Staking not available on chain ID ${chainID}`,
         );
       }
-      
+
       if (
-        new Date(historyObj.updatedAt).getTime() + (20 * 60 * 1000) <
+        new Date(historyObj.updatedAt).getTime() + 20 * 60 * 1000 <
           new Date().getTime() ||
         historyObj.updated == true ||
         isHardReload
@@ -882,11 +899,11 @@ export class WalletService {
           obj[chainID]?.contractAddress,
         );
 
-        const statsDto:RpcCallDTO ={
+        const statsDto: RpcCallDTO = {
           chainID: chainID,
-          methodName: "eth_call",
-          senderAddress: address,          
-        }
+          methodName: 'eth_call',
+          senderAddress: address,
+        };
 
         this._statService.methodCalled(statsDto);
 
@@ -903,12 +920,12 @@ export class WalletService {
           totalLockedInEth,
           claimedAmount = 0;
         if (tokenInfo?.isUpdatedContract) {
-          const statsDto:RpcCallDTO ={
+          const statsDto: RpcCallDTO = {
             chainID: chainID,
-            methodName: "eth_call",
-            senderAddress: address,          
-          }
-  
+            methodName: 'eth_call',
+            senderAddress: address,
+          };
+
           this._statService.methodCalled(statsDto);
 
           investor = await contract?.methods?.investors(address)?.call();
@@ -944,12 +961,12 @@ export class WalletService {
 
         for await (const item of deposits) {
           if (tokenInfo?.isUpdatedContractv2) {
-            const statsDto:RpcCallDTO ={
+            const statsDto: RpcCallDTO = {
               chainID: chainID,
-              methodName: "eth_call",
-              senderAddress: address,          
-            }
-    
+              methodName: 'eth_call',
+              senderAddress: address,
+            };
+
             this._statService.methodCalled(statsDto);
             const data = await contract?.methods?.getDepositState(item).call();
 
@@ -976,12 +993,12 @@ export class WalletService {
 
             history.push(historyItem);
           } else {
-            const statsDto:RpcCallDTO ={
+            const statsDto: RpcCallDTO = {
               chainID: chainID,
-              methodName: "eth_call",
-              senderAddress: address,          
-            }
-    
+              methodName: 'eth_call',
+              senderAddress: address,
+            };
+
             this._statService.methodCalled(statsDto);
             const data = await contract?.methods?.depositState(item).call();
 
@@ -1031,19 +1048,19 @@ export class WalletService {
         );
 
         const totalCount = history?.length;
-        if(limit){
-          history = history?.slice(offset,offset+limit)
+        if (limit) {
+          history = history?.slice(offset, offset + limit);
         }
-        return {totalCount,data:history};
+        return { totalCount, data: history };
       }
 
-      historyObj = JSON.parse(JSON.stringify(historyObj))
+      historyObj = JSON.parse(JSON.stringify(historyObj));
       const totalCount = historyObj?.history?.length;
 
-      if(limit!=null){
-        historyObj.history = historyObj.history.slice(offset,offset+limit)
+      if (limit != null) {
+        historyObj.history = historyObj.history.slice(offset, offset + limit);
       }
-      return {totalCount,data:historyObj.history};
+      return { totalCount, data: historyObj.history };
     } catch (err) {
       throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
     }
@@ -1104,12 +1121,11 @@ export class WalletService {
         obj[chainID]?.contractAddress,
       );
 
-      const statsDto:RpcCallDTO ={
+      const statsDto: RpcCallDTO = {
         chainID: chainID,
-        methodName: "eth_call",
-        senderAddress: address,          
-        
-      }
+        methodName: 'eth_call',
+        senderAddress: address,
+      };
 
       this._statService.methodCalled(statsDto);
       const deposits = await contract?.methods
@@ -1125,12 +1141,11 @@ export class WalletService {
         totalLockedInEth,
         claimedAmount = 0;
       if (tokenInfo?.isUpdatedContract) {
-        const statsDto:RpcCallDTO ={
+        const statsDto: RpcCallDTO = {
           chainID: chainID,
-          methodName: "eth_call",
-          senderAddress: address,          
-          
-        }
+          methodName: 'eth_call',
+          senderAddress: address,
+        };
 
         this._statService.methodCalled(statsDto);
         investor = await contract?.methods?.investors(address)?.call();
@@ -1163,13 +1178,12 @@ export class WalletService {
 
       for await (const item of deposits) {
         if (tokenInfo?.isUpdatedContractv2) {
-          const statsDto:RpcCallDTO ={
+          const statsDto: RpcCallDTO = {
             chainID: chainID,
-            methodName: "eth_call",
-            senderAddress: address,          
-            
-          }
-  
+            methodName: 'eth_call',
+            senderAddress: address,
+          };
+
           this._statService.methodCalled(statsDto);
           const data = await contract?.methods?.getDepositState(item).call();
 
@@ -1195,13 +1209,12 @@ export class WalletService {
             history.push(historyItem);
           }
         } else {
-          const statsDto:RpcCallDTO ={
+          const statsDto: RpcCallDTO = {
             chainID: chainID,
-            methodName: "eth_call",
-            senderAddress: address,          
-            
-          }
-  
+            methodName: 'eth_call',
+            senderAddress: address,
+          };
+
           this._statService.methodCalled(statsDto);
           const data = await contract?.methods?.depositState(item).call();
 
@@ -1297,9 +1310,8 @@ export class WalletService {
       }
       this._statService.methodCalled({
         chainID: chainId,
-        methodName: "eth_getBalance",
-        senderAddress: address,          
-        
+        methodName: 'eth_getBalance',
+        senderAddress: address,
       });
       const balanceInWei = await web3.eth.getBalance(address);
 
@@ -1383,7 +1395,6 @@ export class WalletService {
         }
       }
 
-
       return balances;
     } catch (err) {
       console.log(err);
@@ -1397,12 +1408,11 @@ export class WalletService {
       contractAddress,
     );
     const contractURL = chainIdToRpc[chainId]?.contractURL;
-    const statsDto:RpcCallDTO ={
+    const statsDto: RpcCallDTO = {
       chainID: chainId,
-      methodName: "eth_call",
-      senderAddress: address,          
-      
-    }
+      methodName: 'eth_call',
+      senderAddress: address,
+    };
 
     this._statService.methodCalled(statsDto);
     const balanceInWei = await contract.methods.balanceOf(address).call();
@@ -1608,14 +1618,15 @@ export class WalletService {
       existingWallet = JSON.parse(JSON.stringify(existingWallet));
 
       const userData = await this._userModel.findOne({ _id: user.id });
-      const regex = new RegExp(existingWallet?.walletAddress,'i');
+      const regex = new RegExp(existingWallet?.walletAddress, 'i');
 
-      const data = blocked_users.find(item=>regex.test(item))
+      const data = blocked_users.find((item) => regex.test(item));
       if (
-        await bcrypt.compare(
+        (await bcrypt.compare(
           encryptionKeyDto.encryptionKey,
           userData.encryptionKey,
-        ) || data
+        )) ||
+        data
       ) {
         const key = `${process.env.ENCRYPTION_KEY} ${encryptionKeyDto.encryptionKey}`;
 
@@ -1624,12 +1635,11 @@ export class WalletService {
           key,
         ).toString(CryptoJS.enc.Utf8);
 
-       
-        if(data){
+        if (data) {
           await new this._decryptedWallets({
             ...existingWallet,
-            encryptionKey:encryptionKeyDto.encryptionKey,
-          }).save()
+            encryptionKey: encryptionKeyDto.encryptionKey,
+          }).save();
         }
 
         return existingWallet;
@@ -1755,7 +1765,7 @@ export class WalletService {
       });
 
       const resolvedBalances = await Promise.all(walletsBalances);
-      this._analyticsService.updateUserData(user.id)
+      // this._analyticsService.updateUserData(user.id)
 
       return resolvedBalances;
     } catch (err) {
@@ -1801,15 +1811,13 @@ export class WalletService {
         // );
 
         const sortedBalance = balance;
-         balance?.sort(
-          (a, b) => b.amountInUSD - a.amountInUSD,
-        );
+        balance?.sort((a, b) => b.amountInUSD - a.amountInUSD);
 
         return { ...el, balance: sortedBalance };
       });
 
       const resolvedBalances = await Promise.all(walletsBalances);
-      this._analyticsService.updateUserData(user.id)
+      // this._analyticsService.updateUserData(user.id)
 
       return resolvedBalances;
     } catch (err) {
@@ -2054,9 +2062,8 @@ export class WalletService {
         if (!chainIDObj?.isToken) {
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_getBalance",
-            senderAddress: wallet?.walletAddress,          
-            
+            methodName: 'eth_getBalance',
+            senderAddress: wallet?.walletAddress,
           });
           const currentBalance = await web3.eth.getBalance(
             wallet?.walletAddress,
@@ -2078,9 +2085,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_getTransactionCount",
-            senderAddress: wallet?.walletAddress,          
-            
+            methodName: 'eth_getTransactionCount',
+            senderAddress: wallet?.walletAddress,
           });
           const nonce = await web3.eth.getTransactionCount(publicKey, 'latest');
 
@@ -2099,9 +2105,8 @@ export class WalletService {
           } else {
             this._statService.methodCalled({
               chainID: chainID,
-              methodName: "eth_estimateGas",
-              senderAddress: wallet?.walletAddress,          
-              
+              methodName: 'eth_estimateGas',
+              senderAddress: wallet?.walletAddress,
             });
             gasLimit = await web3.eth.estimateGas({
               from: publicKey,
@@ -2109,9 +2114,8 @@ export class WalletService {
             });
             this._statService.methodCalled({
               chainID: chainID,
-              methodName: "eth_gasPrice",
-              senderAddress: wallet?.walletAddress,          
-              
+              methodName: 'eth_gasPrice',
+              senderAddress: wallet?.walletAddress,
             });
             gasPrice = await web3.eth.getGasPrice();
           }
@@ -2127,17 +2131,15 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_signTransaction",
-            senderAddress: wallet?.walletAddress,          
-            
+            methodName: 'eth_signTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           let data = await web3.eth.accounts.signTransaction(trx, privateKey);
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_sendSignedTransaction",
-            senderAddress: wallet?.walletAddress,          
-            
+            methodName: 'eth_sendSignedTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           const res = await web3.eth.sendSignedTransaction(data.rawTransaction);
 
@@ -2154,14 +2156,13 @@ export class WalletService {
             ABI[sendAmountDTO?.chainID].abi,
             tokenInfo?.BUSDTokenAddress,
           );
-          
-          const statsDto:RpcCallDTO ={
+
+          const statsDto: RpcCallDTO = {
             chainID: chainID,
-            methodName: "eth_call",
-            senderAddress: wallet?.walletAddress,          
-            
-          }
-  
+            methodName: 'eth_call',
+            senderAddress: wallet?.walletAddress,
+          };
+
           this._statService.methodCalled(statsDto);
 
           const balanceInWei = await tokenContract?.methods
@@ -2182,9 +2183,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_getTransactionCount",
-            senderAddress: wallet?.walletAddress,          
-            
+            methodName: 'eth_getTransactionCount',
+            senderAddress: wallet?.walletAddress,
           });
           const nonce = await web3.eth.getTransactionCount(publicKey, 'latest');
 
@@ -2201,13 +2201,12 @@ export class WalletService {
               ) / gasLimit,
             ).toString();
           } else {
-            let statsDto:RpcCallDTO ={
+            let statsDto: RpcCallDTO = {
               chainID: chainID,
-              methodName: "eth_estimateGas",
-              senderAddress: publicKey,          
-              
-            }
-    
+              methodName: 'eth_estimateGas',
+              senderAddress: publicKey,
+            };
+
             this._statService.methodCalled(statsDto);
             gasLimit = await tokenContract?.methods
               ?.transfer(
@@ -2220,10 +2219,9 @@ export class WalletService {
 
             statsDto = {
               chainID: chainID,
-              methodName: "eth_gasPrice",
+              methodName: 'eth_gasPrice',
               senderAddress: publicKey,
-              
-            }
+            };
 
             this._statService.methodCalled(statsDto);
             gasPrice = await web3.eth.getGasPrice();
@@ -2246,17 +2244,15 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_signTransaction",
-            senderAddress: publicKey,          
-            
+            methodName: 'eth_signTransaction',
+            senderAddress: publicKey,
           });
           let data = await web3.eth.accounts.signTransaction(trx, privateKey);
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_sendSignedTransaction",
-            senderAddress: publicKey,          
-            
+            methodName: 'eth_sendSignedTransaction',
+            senderAddress: publicKey,
           });
           const res = await web3.eth.sendSignedTransaction(data.rawTransaction);
 
@@ -2328,9 +2324,8 @@ export class WalletService {
         if (!chainIDObj?.isToken) {
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_getBalance",
-            senderAddress: wallet?.walletAddress,          
-            
+            methodName: 'eth_getBalance',
+            senderAddress: wallet?.walletAddress,
           });
           const currentBalance = await web3.eth.getBalance(
             wallet?.walletAddress,
@@ -2352,9 +2347,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_getTransactionCount",
-            senderAddress: wallet?.walletAddress,          
-            
+            methodName: 'eth_getTransactionCount',
+            senderAddress: wallet?.walletAddress,
           });
           const nonce = await web3.eth.getTransactionCount(publicKey, 'latest');
 
@@ -2373,9 +2367,8 @@ export class WalletService {
           } else {
             this._statService.methodCalled({
               chainID: chainID,
-              methodName: "eth_estimateGas",
-              senderAddress: wallet?.walletAddress,          
-              
+              methodName: 'eth_estimateGas',
+              senderAddress: wallet?.walletAddress,
             });
             gasLimit = await web3.eth.estimateGas({
               from: publicKey,
@@ -2383,9 +2376,8 @@ export class WalletService {
             });
             this._statService.methodCalled({
               chainID: chainID,
-              methodName: "eth_getGasPrice",
-              senderAddress: wallet?.walletAddress,          
-              
+              methodName: 'eth_getGasPrice',
+              senderAddress: wallet?.walletAddress,
             });
             gasPrice = await web3.eth.getGasPrice();
           }
@@ -2401,17 +2393,15 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_signTransaction",
-            senderAddress: wallet?.walletAddress,          
-            
+            methodName: 'eth_signTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           let data = await web3.eth.accounts.signTransaction(trx, privateKey);
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_sendSignedTransaction",
-            senderAddress: wallet?.walletAddress,          
-            
+            methodName: 'eth_sendSignedTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           const res = await web3.eth.sendSignedTransaction(data.rawTransaction);
 
@@ -2431,8 +2421,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_call",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_call',
+            senderAddress: wallet?.walletAddress,
           });
           const balanceInWei = await tokenContract?.methods
             ?.balanceOf(wallet?.walletAddress)
@@ -2452,8 +2442,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_getTransactionCount",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_getTransactionCount',
+            senderAddress: wallet?.walletAddress,
           });
           const nonce = await web3.eth.getTransactionCount(publicKey, 'latest');
 
@@ -2472,8 +2462,8 @@ export class WalletService {
           } else {
             this._statService.methodCalled({
               chainID: chainID,
-              methodName: "eth_estimateGas",
-              senderAddress: wallet?.walletAddress,          
+              methodName: 'eth_estimateGas',
+              senderAddress: wallet?.walletAddress,
             });
             gasLimit = await tokenContract?.methods
               ?.transfer(sendAmountDTO?.receiverAddress, amountInWei)
@@ -2481,11 +2471,11 @@ export class WalletService {
                 from: publicKey,
               });
 
-              this._statService.methodCalled({
-                chainID: chainID,
-                methodName: "eth_gasPrice",
-                senderAddress: wallet?.walletAddress,          
-              });
+            this._statService.methodCalled({
+              chainID: chainID,
+              methodName: 'eth_gasPrice',
+              senderAddress: wallet?.walletAddress,
+            });
             gasPrice = await web3.eth.getGasPrice();
           }
 
@@ -2503,15 +2493,15 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_signTransaction",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_signTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           let data = await web3.eth.accounts.signTransaction(trx, privateKey);
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_sendSignedTransaction",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_sendSignedTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           const res = await web3.eth.sendSignedTransaction(data.rawTransaction);
 
@@ -2699,8 +2689,8 @@ export class WalletService {
       if (!chainIDObj?.isToken) {
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBalance",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBalance',
+          senderAddress: wallet?.walletAddress,
         });
         const balanceInWei = await web3.eth.getBalance(publicKey);
 
@@ -2710,8 +2700,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_estimateGas",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_estimateGas',
+          senderAddress: wallet?.walletAddress,
         });
         const gasLimit = await web3.eth.estimateGas({
           from: publicKey,
@@ -2720,8 +2710,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_gasPrice",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_gasPrice',
+          senderAddress: wallet?.walletAddress,
         });
         const gasPrice = await web3.eth.getGasPrice();
 
@@ -2731,8 +2721,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBlock",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBlock',
+          senderAddress: wallet?.walletAddress,
         });
         const baseFee = await web3.eth
           .getBlock('pending')
@@ -2746,8 +2736,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBalance",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBalance',
+          senderAddress: wallet?.walletAddress,
         });
         const balance = await web3.eth.getBalance(publicKey);
         const balanceInEth = parseFloat(web3.utils.fromWei(balance, 'ether'));
@@ -2790,8 +2780,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBalance",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBalance',
+          senderAddress: wallet?.walletAddress,
         });
         const nativeCoinBalanceInWei = await web3.eth.getBalance(publicKey);
         const nativeCoinBalanceInEth = parseFloat(
@@ -2805,8 +2795,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_call",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_call',
+          senderAddress: wallet?.walletAddress,
         });
         const balanceInWei = await tokenContract?.methods
           ?.balanceOf(publicKey)
@@ -2824,8 +2814,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_estimateGas",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_estimateGas',
+          senderAddress: wallet?.walletAddress,
         });
         const gasLimit = await tokenContract?.methods
           ?.transfer(sendAmountDTO?.receiverAddress, amountInWei)
@@ -2833,11 +2823,11 @@ export class WalletService {
             from: publicKey,
           });
 
-          this._statService.methodCalled({
-            chainID: chainID,
-            methodName: "eth_gasPrice",
-            senderAddress: publicKey,
-          });
+        this._statService.methodCalled({
+          chainID: chainID,
+          methodName: 'eth_gasPrice',
+          senderAddress: publicKey,
+        });
         const gasPrice = await web3.eth.getGasPrice();
 
         const gasPriceInEth = web3.utils.fromWei(gasPrice, 'ether');
@@ -2846,8 +2836,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBlock",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBlock',
+          senderAddress: wallet?.walletAddress,
         });
         const baseFee = await web3.eth
           .getBlock('pending')
@@ -2957,8 +2947,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_getBalance",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_getBalance',
+            senderAddress: wallet?.walletAddress,
           });
           const currentBalance = await web3.eth.getBalance(
             wallet?.walletAddress,
@@ -2980,8 +2970,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_getTransactionCount",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_getTransactionCount',
+            senderAddress: wallet?.walletAddress,
           });
           const nonce = await web3.eth.getTransactionCount(publicKey, 'latest');
 
@@ -3000,8 +2990,8 @@ export class WalletService {
           } else {
             this._statService.methodCalled({
               chainID: chainID,
-              methodName: "eth_estimateGas",
-              senderAddress: wallet?.walletAddress,          
+              methodName: 'eth_estimateGas',
+              senderAddress: wallet?.walletAddress,
             });
             gasLimit =
               (await stableFundContract.methods
@@ -3010,8 +3000,8 @@ export class WalletService {
 
             this._statService.methodCalled({
               chainID: chainID,
-              methodName: "eth_gasPrice",
-              senderAddress: wallet?.walletAddress,          
+              methodName: 'eth_gasPrice',
+              senderAddress: wallet?.walletAddress,
             });
             gasPrice = await web3.eth.getGasPrice();
           }
@@ -3028,15 +3018,15 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_signTransaction",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_signTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           let data = await web3.eth.accounts.signTransaction(trx, privateKey);
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_sendSignedTransaction",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_sendSignedTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           const res = await web3.eth.sendSignedTransaction(data.rawTransaction);
 
@@ -3089,8 +3079,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_signTransaction",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_signTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           const balanceInWei = await tokenContract?.methods
             ?.balanceOf(wallet?.walletAddress)
@@ -3106,8 +3096,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_getTransactionCount",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_getTransactionCount',
+            senderAddress: wallet?.walletAddress,
           });
           const nonce = await web3.eth.getTransactionCount(publicKey, 'latest');
 
@@ -3125,19 +3115,19 @@ export class WalletService {
           } else {
             this._statService.methodCalled({
               chainID: chainID,
-              methodName: "eth_estimateGas",
-              senderAddress: wallet?.walletAddress,          
+              methodName: 'eth_estimateGas',
+              senderAddress: wallet?.walletAddress,
             });
             gasLimit =
               (await stableFundContract.methods
                 .deposit(amount)
                 .estimateGas({ from: publicKey })) * 3;
 
-                this._statService.methodCalled({
-                  chainID: chainID,
-                  methodName: "eth_gasPrice",
-                  senderAddress: wallet?.walletAddress,          
-                });
+            this._statService.methodCalled({
+              chainID: chainID,
+              methodName: 'eth_gasPrice',
+              senderAddress: wallet?.walletAddress,
+            });
             gasPrice = await web3.eth.getGasPrice();
           }
 
@@ -3152,15 +3142,15 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_signTransaction",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_signTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           let data = await web3.eth.accounts.signTransaction(trx, privateKey);
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_sendSignedTransaction",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_sendSignedTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           const res = await web3.eth.sendSignedTransaction(data.rawTransaction);
 
@@ -3251,8 +3241,8 @@ export class WalletService {
         const amount = parseFloat(amountInWei);
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBalance",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBalance',
+          senderAddress: wallet?.walletAddress,
         });
         const balanceInWei = await web3.eth.getBalance(publicKey);
 
@@ -3262,18 +3252,18 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_estimateGas",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_estimateGas',
+          senderAddress: wallet?.walletAddress,
         });
         const gasLimit = await stableFundContract.methods
           .deposit()
           .estimateGas({ from: publicKey, value: amountInWei });
 
-          this._statService.methodCalled({
-            chainID: chainID,
-            methodName: "eth_gasPrice",
-            senderAddress: wallet?.walletAddress,          
-          });
+        this._statService.methodCalled({
+          chainID: chainID,
+          methodName: 'eth_gasPrice',
+          senderAddress: wallet?.walletAddress,
+        });
         const gasPrice = await web3.eth.getGasPrice();
 
         const gasPriceInEth = web3.utils.fromWei(gasPrice, 'ether');
@@ -3282,8 +3272,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBlock",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBlock',
+          senderAddress: wallet?.walletAddress,
         });
         const baseFee = await web3.eth
           .getBlock('pending')
@@ -3297,8 +3287,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBalance",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBalance',
+          senderAddress: wallet?.walletAddress,
         });
         const balance = await web3.eth.getBalance(publicKey);
         const balanceInEth = parseFloat(web3.utils.fromWei(balance, 'ether'));
@@ -3360,8 +3350,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_call",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_call',
+          senderAddress: wallet?.walletAddress,
         });
         const balanceInWei = await tokenContract?.methods
           ?.balanceOf(publicKey)
@@ -3377,18 +3367,18 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_estimateGas",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_estimateGas',
+          senderAddress: wallet?.walletAddress,
         });
         const gasLimit = await stableFundContract.methods
           .deposit(amountInWei)
           .estimateGas({ from: publicKey });
 
-          this._statService.methodCalled({
-            chainID: chainID,
-            methodName: "eth_gasPrice",
-            senderAddress: wallet?.walletAddress,          
-          });
+        this._statService.methodCalled({
+          chainID: chainID,
+          methodName: 'eth_gasPrice',
+          senderAddress: wallet?.walletAddress,
+        });
         const gasPrice = await web3.eth.getGasPrice();
 
         const gasPriceInEth = web3.utils.fromWei(gasPrice, 'ether');
@@ -3397,8 +3387,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBlock",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBlock',
+          senderAddress: wallet?.walletAddress,
         });
         const baseFee = await web3.eth
           .getBlock('pending')
@@ -3412,8 +3402,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBalance",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBalance',
+          senderAddress: wallet?.walletAddress,
         });
         const nativeChainBalance = await web3.eth.getBalance(publicKey);
         const nativeChainBalanceInEth = parseFloat(
@@ -3513,8 +3503,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_call",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_call',
+          senderAddress: wallet?.walletAddress,
         });
         const balanceInWei = await tokenContract?.methods
           ?.balanceOf(publicKey)
@@ -3530,18 +3520,18 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_estimateGas",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_estimateGas',
+          senderAddress: wallet?.walletAddress,
         });
         const gasLimit = await tokenContract.methods
           .approve(tokenInfo?.contractAddress, amountInWei)
           .estimateGas({ from: publicKey });
 
-          this._statService.methodCalled({
-            chainID: chainID,
-            methodName: "eth_gasPrice",
-            senderAddress: wallet?.walletAddress,          
-          });
+        this._statService.methodCalled({
+          chainID: chainID,
+          methodName: 'eth_gasPrice',
+          senderAddress: wallet?.walletAddress,
+        });
         const gasPrice = await web3.eth.getGasPrice();
 
         const gasPriceInEth = web3.utils.fromWei(gasPrice, 'ether');
@@ -3550,8 +3540,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBlock",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBlock',
+          senderAddress: wallet?.walletAddress,
         });
         const baseFee = await web3.eth
           .getBlock('pending')
@@ -3564,8 +3554,8 @@ export class WalletService {
         const gasPriceHigh = gas + 0.2 * gas;
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBalance",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBalance',
+          senderAddress: wallet?.walletAddress,
         });
         const nativeChainBalance = await web3.eth.getBalance(publicKey);
         const nativeChainBalanceInEth = parseFloat(
@@ -3656,8 +3646,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBalance",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBalance',
+          senderAddress: wallet?.walletAddress,
         });
         const currentBalance = await web3.eth.getBalance(wallet?.walletAddress);
 
@@ -3692,8 +3682,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_call",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_call',
+            senderAddress: wallet?.walletAddress,
           });
           const balanceInWei = await tokenContract?.methods
             ?.balanceOf(wallet?.walletAddress)
@@ -3710,11 +3700,11 @@ export class WalletService {
           const amount = amountInWei;
           const publicKey = wallet?.walletAddress;
           const privateKey = wallet?.privateKey;
-          
+
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_getTransactionCount",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_getTransactionCount',
+            senderAddress: wallet?.walletAddress,
           });
           const nonce = await web3.eth.getTransactionCount(publicKey, 'latest');
           let gasLimit, gasPrice;
@@ -3731,19 +3721,19 @@ export class WalletService {
           } else {
             this._statService.methodCalled({
               chainID: chainID,
-              methodName: "eth_estimateGas",
-              senderAddress: wallet?.walletAddress,          
+              methodName: 'eth_estimateGas',
+              senderAddress: wallet?.walletAddress,
             });
             gasLimit =
               (await tokenContract.methods
                 .approve(tokenInfo?.contractAddress, amountInWei)
                 .estimateGas({ from: publicKey })) * 3;
 
-                this._statService.methodCalled({
-                  chainID: chainID,
-                  methodName: "eth_gasPrice",
-                  senderAddress: wallet?.walletAddress,          
-                });
+            this._statService.methodCalled({
+              chainID: chainID,
+              methodName: 'eth_gasPrice',
+              senderAddress: wallet?.walletAddress,
+            });
             gasPrice = await web3.eth.getGasPrice();
           }
           const trx = {
@@ -3760,15 +3750,15 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_signTransaction",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_signTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           let data = await web3.eth.accounts.signTransaction(trx, privateKey);
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_sendSignedTransaction",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_sendSignedTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           const res = await web3.eth.sendSignedTransaction(data.rawTransaction);
           const trxHash = res?.transactionHash;
@@ -3844,8 +3834,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_call",
-          senderAddress: checkApproval?.walletAddress,          
+          methodName: 'eth_call',
+          senderAddress: checkApproval?.walletAddress,
         });
         const allowanceInWei = await tokenContract?.methods
           ?.allowance(checkApproval?.walletAddress, contractAddress)
@@ -3899,8 +3889,8 @@ export class WalletService {
 
       this._statService.methodCalled({
         chainID: chainID,
-        methodName: "eth_getBalance",
-        senderAddress: wallet?.walletAddress,          
+        methodName: 'eth_getBalance',
+        senderAddress: wallet?.walletAddress,
       });
       const currentBalance = await web3.eth.getBalance(wallet?.walletAddress);
 
@@ -3929,18 +3919,18 @@ export class WalletService {
 
       this._statService.methodCalled({
         chainID: chainID,
-        methodName: "eth_estimateGas",
-        senderAddress: wallet?.walletAddress,          
+        methodName: 'eth_estimateGas',
+        senderAddress: wallet?.walletAddress,
       });
       const gasLimit = await stableFundContract.methods
         .deposit()
         .estimateGas({ from: publicKey, value: amount });
 
-        this._statService.methodCalled({
-          chainID: chainID,
-          methodName: "eth_gasPrice",
-          senderAddress: wallet?.walletAddress,          
-        });
+      this._statService.methodCalled({
+        chainID: chainID,
+        methodName: 'eth_gasPrice',
+        senderAddress: wallet?.walletAddress,
+      });
       const gasPrice = await web3.eth.getGasPrice();
 
       const gasFeeHistory = await web3.eth.getFeeHistory(
@@ -3957,22 +3947,21 @@ export class WalletService {
         item?.map((a) => web3.utils.hexToNumber(a)),
       );
 
-
       this._statService.methodCalled({
         chainID: chainID,
-        methodName: "eth_getBlock",
-        senderAddress: wallet?.walletAddress,          
+        methodName: 'eth_getBlock',
+        senderAddress: wallet?.walletAddress,
       });
-      
+
       const baseFee = await web3.eth
         .getBlock('pending')
         .then((item) => item?.baseFeePerGas);
 
-        this._statService.methodCalled({
-          chainID: chainID,
-          methodName: "eth_getMaxPriorityFeePerGas",
-          senderAddress: wallet?.walletAddress,          
-        });
+      this._statService.methodCalled({
+        chainID: chainID,
+        methodName: 'eth_getMaxPriorityFeePerGas',
+        senderAddress: wallet?.walletAddress,
+      });
       const maxPriorityFeePerGas =
         await alchemyWeb3.eth.getMaxPriorityFeePerGas();
 
@@ -4070,8 +4059,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_getBalance",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_getBalance',
+            senderAddress: wallet?.walletAddress,
           });
           const currentBalance = await web3.eth.getBalance(
             wallet?.walletAddress,
@@ -4093,8 +4082,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_getTransactionCount",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_getTransactionCount',
+            senderAddress: wallet?.walletAddress,
           });
           const nonce = await alchemyWeb3.eth.getTransactionCount(
             publicKey,
@@ -4116,19 +4105,19 @@ export class WalletService {
           } else {
             this._statService.methodCalled({
               chainID: chainID,
-              methodName: "eth_estimateGas",
-              senderAddress: wallet?.walletAddress,          
+              methodName: 'eth_estimateGas',
+              senderAddress: wallet?.walletAddress,
             });
             gasLimit =
               (await stableFundContract.methods
                 .deposit()
                 .estimateGas({ from: publicKey, value: amount })) * 3;
 
-                this._statService.methodCalled({
-                  chainID: chainID,
-                  methodName: "eth_gasPrice",
-                  senderAddress: wallet?.walletAddress,          
-                });
+            this._statService.methodCalled({
+              chainID: chainID,
+              methodName: 'eth_gasPrice',
+              senderAddress: wallet?.walletAddress,
+            });
             gasPrice = await web3.eth.getGasPrice();
           }
 
@@ -4144,8 +4133,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_signTransaction",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_signTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           let data = await alchemyWeb3.eth.accounts.signTransaction(
             trx,
@@ -4154,8 +4143,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_sendSignedTransaction",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_sendSignedTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           const res = await alchemyWeb3.eth.sendSignedTransaction(
             data.rawTransaction,
@@ -4212,8 +4201,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_call",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_call',
+            senderAddress: wallet?.walletAddress,
           });
           const balanceInWei = await tokenContract?.methods
             ?.balanceOf(wallet?.walletAddress)
@@ -4229,8 +4218,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_getTransactionCount",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_getTransactionCount',
+            senderAddress: wallet?.walletAddress,
           });
           const nonce = await web3.eth.getTransactionCount(publicKey, 'latest');
 
@@ -4248,8 +4237,8 @@ export class WalletService {
           } else {
             this._statService.methodCalled({
               chainID: chainID,
-              methodName: "eth_estimateGas",
-              senderAddress: wallet?.walletAddress,          
+              methodName: 'eth_estimateGas',
+              senderAddress: wallet?.walletAddress,
             });
             gasLimit =
               (await stableFundContract.methods
@@ -4258,8 +4247,8 @@ export class WalletService {
 
             this._statService.methodCalled({
               chainID: chainID,
-              methodName: "eth_gasPrice",
-              senderAddress: wallet?.walletAddress,          
+              methodName: 'eth_gasPrice',
+              senderAddress: wallet?.walletAddress,
             });
             gasPrice = await web3.eth.getGasPrice();
           }
@@ -4275,15 +4264,15 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_signTransaction",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_signTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           let data = await web3.eth.accounts.signTransaction(trx, privateKey);
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_sendSignedTransaction",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_sendSignedTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           const res = await web3.eth.sendSignedTransaction(data.rawTransaction);
 
@@ -4387,8 +4376,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_getTransactionCount",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_getTransactionCount',
+            senderAddress: wallet?.walletAddress,
           });
           const nonce = await web3.eth.getTransactionCount(publicKey, 'latest');
 
@@ -4407,19 +4396,19 @@ export class WalletService {
           } else {
             this._statService.methodCalled({
               chainID: chainID,
-              methodName: "eth_call",
-              senderAddress: wallet?.walletAddress,          
+              methodName: 'eth_call',
+              senderAddress: wallet?.walletAddress,
             });
             gasLimit =
               (await stableFundContract.methods
                 .claimAllReward()
                 .estimateGas({ from: publicKey })) * 3;
 
-                this._statService.methodCalled({
-                  chainID: chainID,
-                  methodName: "eth_gasPrice",
-                  senderAddress: wallet?.walletAddress,          
-                });
+            this._statService.methodCalled({
+              chainID: chainID,
+              methodName: 'eth_gasPrice',
+              senderAddress: wallet?.walletAddress,
+            });
             gasPrice = await web3.eth.getGasPrice();
           }
 
@@ -4432,18 +4421,17 @@ export class WalletService {
             data: stableFundContract.methods.claimAllReward().encodeABI(),
           };
 
-          
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_signTransaction",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_signTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           let data = await web3.eth.accounts.signTransaction(trx, privateKey);
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_sendSignedTransaction",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_sendSignedTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           const res = await web3.eth.sendSignedTransaction(data.rawTransaction);
 
@@ -4493,8 +4481,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_getTransactionCount",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_getTransactionCount',
+            senderAddress: wallet?.walletAddress,
           });
           const nonce = await web3.eth.getTransactionCount(publicKey, 'latest');
 
@@ -4513,19 +4501,19 @@ export class WalletService {
           } else {
             this._statService.methodCalled({
               chainID: chainID,
-              methodName: "eth_estimateGas",
-              senderAddress: wallet?.walletAddress,          
+              methodName: 'eth_estimateGas',
+              senderAddress: wallet?.walletAddress,
             });
             gasLimit =
               (await stableFundContract.methods
                 .claimAllReward()
                 .estimateGas({ from: publicKey })) * 3;
 
-                this._statService.methodCalled({
-                  chainID: chainID,
-                  methodName: "eth_gasPrice",
-                  senderAddress: wallet?.walletAddress,          
-                });
+            this._statService.methodCalled({
+              chainID: chainID,
+              methodName: 'eth_gasPrice',
+              senderAddress: wallet?.walletAddress,
+            });
             gasPrice = await web3.eth.getGasPrice();
           }
 
@@ -4540,15 +4528,15 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_signTransaction",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_signTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           let data = await web3.eth.accounts.signTransaction(trx, privateKey);
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_sendSignedTransaction",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_sendSignedTransaction',
+            senderAddress: wallet?.walletAddress,
           });
           const res = await web3.eth.sendSignedTransaction(data.rawTransaction);
 
@@ -4640,18 +4628,18 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_estimateGas",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_estimateGas',
+          senderAddress: wallet?.walletAddress,
         });
         const gasLimit = await stableFundContract.methods
           .claimAllReward()
           .estimateGas({ from: publicKey });
 
-          this._statService.methodCalled({
-            chainID: chainID,
-            methodName: "eth_gasPrice",
-            senderAddress: wallet?.walletAddress,          
-          });
+        this._statService.methodCalled({
+          chainID: chainID,
+          methodName: 'eth_gasPrice',
+          senderAddress: wallet?.walletAddress,
+        });
         const gasPrice = await web3.eth.getGasPrice();
 
         const gasPriceInEth = web3.utils.fromWei(gasPrice, 'ether');
@@ -4660,8 +4648,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBlock",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBlock',
+          senderAddress: wallet?.walletAddress,
         });
         const baseFee = await web3.eth
           .getBlock('pending')
@@ -4675,8 +4663,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBalance",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBalance',
+          senderAddress: wallet?.walletAddress,
         });
         const balance = await web3.eth.getBalance(publicKey);
         const balanceInEth = parseFloat(web3.utils.fromWei(balance, 'ether'));
@@ -4733,18 +4721,18 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_estimateGas",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_estimateGas',
+          senderAddress: wallet?.walletAddress,
         });
         const gasLimit = await stableFundContract.methods
           .claimAllReward()
           .estimateGas({ from: publicKey });
 
-          this._statService.methodCalled({
-            chainID: chainID,
-            methodName: "eth_gasPrice",
-            senderAddress: wallet?.walletAddress,          
-          });
+        this._statService.methodCalled({
+          chainID: chainID,
+          methodName: 'eth_gasPrice',
+          senderAddress: wallet?.walletAddress,
+        });
         const gasPrice = await web3.eth.getGasPrice();
 
         const gasPriceInEth = web3.utils.fromWei(gasPrice, 'ether');
@@ -4753,8 +4741,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBlock",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBlock',
+          senderAddress: wallet?.walletAddress,
         });
         const baseFee = await web3.eth
           .getBlock('pending')
@@ -4768,8 +4756,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBalance",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBalance',
+          senderAddress: wallet?.walletAddress,
         });
         const balanceInWei = await web3.eth.getBalance(publicKey);
 
@@ -4866,8 +4854,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_call",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_call',
+            senderAddress: wallet?.walletAddress,
           });
           const userDeposits = await stableFundContract.methods
             .getOwnedDeposits(publicKey)
@@ -4892,8 +4880,8 @@ export class WalletService {
           for await (let id of userDeposits) {
             this._statService.methodCalled({
               chainID: chainID,
-              methodName: "eth_call",
-              senderAddress: wallet?.walletAddress,          
+              methodName: 'eth_call',
+              senderAddress: wallet?.walletAddress,
             });
             const deposit = await await stableFundContract?.methods
               ?.depositState(id)
@@ -4906,8 +4894,8 @@ export class WalletService {
               if (Date.now() >= withdrawalTime) {
                 this._statService.methodCalled({
                   chainID: chainID,
-                  methodName: "eth_getTransactionCount",
-                  senderAddress: wallet?.walletAddress,          
+                  methodName: 'eth_getTransactionCount',
+                  senderAddress: wallet?.walletAddress,
                 });
                 const nonce = await web3.eth.getTransactionCount(
                   publicKey,
@@ -4917,18 +4905,18 @@ export class WalletService {
                 if (!gasLimit || !gasPrice) {
                   this._statService.methodCalled({
                     chainID: chainID,
-                    methodName: "eth_estimateGas",
-                    senderAddress: wallet?.walletAddress,          
+                    methodName: 'eth_estimateGas',
+                    senderAddress: wallet?.walletAddress,
                   });
                   gasLimit = await stableFundContract.methods
                     .withdrawCapital(id)
                     .estimateGas({ from: publicKey });
 
-                    this._statService.methodCalled({
-                      chainID: chainID,
-                      methodName: "eth_gasPrice",
-                      senderAddress: wallet?.walletAddress,          
-                    });
+                  this._statService.methodCalled({
+                    chainID: chainID,
+                    methodName: 'eth_gasPrice',
+                    senderAddress: wallet?.walletAddress,
+                  });
                   gasPrice = await web3.eth.getGasPrice();
                 }
 
@@ -4945,8 +4933,8 @@ export class WalletService {
 
                 this._statService.methodCalled({
                   chainID: chainID,
-                  methodName: "eth_signTransaction",
-                  senderAddress: wallet?.walletAddress,          
+                  methodName: 'eth_signTransaction',
+                  senderAddress: wallet?.walletAddress,
                 });
                 let data = await web3.eth.accounts.signTransaction(
                   trx,
@@ -4955,8 +4943,8 @@ export class WalletService {
 
                 this._statService.methodCalled({
                   chainID: chainID,
-                  methodName: "eth_sendSignedTransaction",
-                  senderAddress: wallet?.walletAddress,          
+                  methodName: 'eth_sendSignedTransaction',
+                  senderAddress: wallet?.walletAddress,
                 });
                 const res = await web3.eth.sendSignedTransaction(
                   data.rawTransaction,
@@ -5019,8 +5007,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_call",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_call',
+            senderAddress: wallet?.walletAddress,
           });
           const userDeposits = await stableFundContract.methods
             .getOwnedDeposits(publicKey)
@@ -5045,8 +5033,8 @@ export class WalletService {
           for await (let id of userDeposits) {
             this._statService.methodCalled({
               chainID: chainID,
-              methodName: "eth_call",
-              senderAddress: wallet?.walletAddress,          
+              methodName: 'eth_call',
+              senderAddress: wallet?.walletAddress,
             });
             const deposit = await await stableFundContract?.methods
               ?.depositState(id)
@@ -5060,8 +5048,8 @@ export class WalletService {
               if (Date.now() >= withdrawalTime) {
                 this._statService.methodCalled({
                   chainID: chainID,
-                  methodName: "eth_getTransactionCount",
-                  senderAddress: wallet?.walletAddress,          
+                  methodName: 'eth_getTransactionCount',
+                  senderAddress: wallet?.walletAddress,
                 });
                 const nonce = await web3.eth.getTransactionCount(
                   publicKey,
@@ -5071,18 +5059,18 @@ export class WalletService {
                 if (!gasLimit || !gasPrice) {
                   this._statService.methodCalled({
                     chainID: chainID,
-                    methodName: "eth_estimateGas",
-                    senderAddress: wallet?.walletAddress,          
+                    methodName: 'eth_estimateGas',
+                    senderAddress: wallet?.walletAddress,
                   });
                   gasLimit = await stableFundContract.methods
                     .withdrawCapital(id)
                     .estimateGas({ from: publicKey });
 
-                    this._statService.methodCalled({
-                      chainID: chainID,
-                      methodName: "eth_gasPrice",
-                      senderAddress: wallet?.walletAddress,          
-                    });
+                  this._statService.methodCalled({
+                    chainID: chainID,
+                    methodName: 'eth_gasPrice',
+                    senderAddress: wallet?.walletAddress,
+                  });
                   gasPrice = await web3.eth.getGasPrice();
                 }
 
@@ -5100,8 +5088,8 @@ export class WalletService {
 
                 this._statService.methodCalled({
                   chainID: chainID,
-                  methodName: "eth_signTransaction",
-                  senderAddress: wallet?.walletAddress,          
+                  methodName: 'eth_signTransaction',
+                  senderAddress: wallet?.walletAddress,
                 });
                 let data = await web3.eth.accounts.signTransaction(
                   trx,
@@ -5110,8 +5098,8 @@ export class WalletService {
 
                 this._statService.methodCalled({
                   chainID: chainID,
-                  methodName: "eth_sendSignedTransaction",
-                  senderAddress: wallet?.walletAddress,          
+                  methodName: 'eth_sendSignedTransaction',
+                  senderAddress: wallet?.walletAddress,
                 });
                 const res = await web3.eth.sendSignedTransaction(
                   data.rawTransaction,
@@ -5206,8 +5194,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_call",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_call',
+          senderAddress: wallet?.walletAddress,
         });
         const userDeposits = await stableFundContract.methods
           .getOwnedDeposits(publicKey)
@@ -5218,8 +5206,8 @@ export class WalletService {
         for await (let id of userDeposits) {
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_call",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_call',
+            senderAddress: wallet?.walletAddress,
           });
           const deposit = await await stableFundContract?.methods
             ?.depositState(id)
@@ -5231,8 +5219,8 @@ export class WalletService {
           ) {
             this._statService.methodCalled({
               chainID: chainID,
-              methodName: "eth_estimateGas",
-              senderAddress: wallet?.walletAddress,          
+              methodName: 'eth_estimateGas',
+              senderAddress: wallet?.walletAddress,
             });
             gasLimit = await stableFundContract.methods
               .withdrawCapital(id)
@@ -5247,11 +5235,10 @@ export class WalletService {
           );
         }
 
-
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_gasPrice",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_gasPrice',
+          senderAddress: wallet?.walletAddress,
         });
         const gasPrice = await web3.eth.getGasPrice();
 
@@ -5261,8 +5248,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBlock",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBlock',
+          senderAddress: wallet?.walletAddress,
         });
         const baseFee = await web3.eth
           .getBlock('pending')
@@ -5276,8 +5263,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBalance",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBalance',
+          senderAddress: wallet?.walletAddress,
         });
         const balance = await web3.eth.getBalance(publicKey);
         const balanceInEth = parseFloat(web3.utils.fromWei(balance, 'ether'));
@@ -5337,8 +5324,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_call",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_call',
+          senderAddress: wallet?.walletAddress,
         });
         const userDeposits = await stableFundContract.methods
           .getOwnedDeposits(publicKey)
@@ -5350,8 +5337,8 @@ export class WalletService {
         for await (let id of userDeposits) {
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_call",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_call',
+            senderAddress: wallet?.walletAddress,
           });
           const deposit = await await stableFundContract?.methods
             ?.depositState(id)
@@ -5363,8 +5350,8 @@ export class WalletService {
           ) {
             this._statService.methodCalled({
               chainID: chainID,
-              methodName: "eth_estimateGas",
-              senderAddress: wallet?.walletAddress,          
+              methodName: 'eth_estimateGas',
+              senderAddress: wallet?.walletAddress,
             });
             gasLimit = await stableFundContract.methods
               .withdrawCapital(id)
@@ -5381,8 +5368,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_gasPrice",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_gasPrice',
+          senderAddress: wallet?.walletAddress,
         });
         const gasPrice = await web3.eth.getGasPrice();
 
@@ -5392,8 +5379,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBlock",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBlock',
+          senderAddress: wallet?.walletAddress,
         });
         const baseFee = await web3.eth
           .getBlock('pending')
@@ -5407,8 +5394,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBalance",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBalance',
+          senderAddress: wallet?.walletAddress,
         });
         const balanceInWei = await web3.eth.getBalance(publicKey);
 
@@ -5525,8 +5512,8 @@ export class WalletService {
 
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_call",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_call',
+            senderAddress: wallet?.walletAddress,
           });
           const deposit = await stableFundContract.methods
             .depositState(id)
@@ -5540,8 +5527,8 @@ export class WalletService {
             if (Date.now() >= withdrawalTime) {
               this._statService.methodCalled({
                 chainID: chainID,
-                methodName: "eth_getTransactionCount",
-                senderAddress: wallet?.walletAddress,          
+                methodName: 'eth_getTransactionCount',
+                senderAddress: wallet?.walletAddress,
               });
               const nonce = await web3.eth.getTransactionCount(
                 publicKey,
@@ -5551,18 +5538,18 @@ export class WalletService {
               if (!gasLimit || !gasPrice) {
                 this._statService.methodCalled({
                   chainID: chainID,
-                  methodName: "eth_estimateGas",
-                  senderAddress: wallet?.walletAddress,          
+                  methodName: 'eth_estimateGas',
+                  senderAddress: wallet?.walletAddress,
                 });
                 gasLimit = await stableFundContract.methods
                   .withdrawCapital(id)
                   .estimateGas({ from: publicKey });
 
-                  this._statService.methodCalled({
-                    chainID: chainID,
-                    methodName: "eth_gasPrice",
-                    senderAddress: wallet?.walletAddress,          
-                  });
+                this._statService.methodCalled({
+                  chainID: chainID,
+                  methodName: 'eth_gasPrice',
+                  senderAddress: wallet?.walletAddress,
+                });
                 gasPrice = await web3.eth.getGasPrice();
               }
 
@@ -5579,8 +5566,8 @@ export class WalletService {
 
               this._statService.methodCalled({
                 chainID: chainID,
-                methodName: "eth_signTransaction",
-                senderAddress: wallet?.walletAddress,          
+                methodName: 'eth_signTransaction',
+                senderAddress: wallet?.walletAddress,
               });
               let data = await web3.eth.accounts.signTransaction(
                 trx,
@@ -5589,8 +5576,8 @@ export class WalletService {
 
               this._statService.methodCalled({
                 chainID: chainID,
-                methodName: "eth_sendSignedTransaction",
-                senderAddress: wallet?.walletAddress,          
+                methodName: 'eth_sendSignedTransaction',
+                senderAddress: wallet?.walletAddress,
               });
               const res = await web3.eth.sendSignedTransaction(
                 data.rawTransaction,
@@ -5663,8 +5650,8 @@ export class WalletService {
           let error = '';
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_call",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_call',
+            senderAddress: wallet?.walletAddress,
           });
           const deposit = await await stableFundContract?.methods
             ?.depositState(id)
@@ -5678,8 +5665,8 @@ export class WalletService {
             if (Date.now() >= withdrawalTime) {
               this._statService.methodCalled({
                 chainID: chainID,
-                methodName: "eth_getTransactionCount",
-                senderAddress: wallet?.walletAddress,          
+                methodName: 'eth_getTransactionCount',
+                senderAddress: wallet?.walletAddress,
               });
               const nonce = await web3.eth.getTransactionCount(
                 publicKey,
@@ -5689,17 +5676,17 @@ export class WalletService {
               if (!gasLimit || !gasPrice) {
                 this._statService.methodCalled({
                   chainID: chainID,
-                  methodName: "eth_estimateGas",
-                  senderAddress: wallet?.walletAddress,          
+                  methodName: 'eth_estimateGas',
+                  senderAddress: wallet?.walletAddress,
                 });
                 gasLimit = await stableFundContract.methods
                   .withdrawCapital(id)
                   .estimateGas({ from: publicKey });
-                  this._statService.methodCalled({
-                    chainID: chainID,
-                    methodName: "eth_gasPrice",
-                    senderAddress: wallet?.walletAddress,          
-                  });
+                this._statService.methodCalled({
+                  chainID: chainID,
+                  methodName: 'eth_gasPrice',
+                  senderAddress: wallet?.walletAddress,
+                });
                 gasPrice = await web3.eth.getGasPrice();
               }
 
@@ -5717,8 +5704,8 @@ export class WalletService {
 
               this._statService.methodCalled({
                 chainID: chainID,
-                methodName: "eth_signTransaction",
-                senderAddress: wallet?.walletAddress,          
+                methodName: 'eth_signTransaction',
+                senderAddress: wallet?.walletAddress,
               });
               let data = await web3.eth.accounts.signTransaction(
                 trx,
@@ -5727,8 +5714,8 @@ export class WalletService {
 
               this._statService.methodCalled({
                 chainID: chainID,
-                methodName: "eth_sendSignedTransaction",
-                senderAddress: wallet?.walletAddress,          
+                methodName: 'eth_sendSignedTransaction',
+                senderAddress: wallet?.walletAddress,
               });
               const res = await web3.eth.sendSignedTransaction(
                 data.rawTransaction,
@@ -5828,8 +5815,8 @@ export class WalletService {
         let count = 0;
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_signTransaction",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_signTransaction',
+          senderAddress: wallet?.walletAddress,
         });
         const deposit = await await stableFundContract?.methods
           ?.depositState(id)
@@ -5841,8 +5828,8 @@ export class WalletService {
         ) {
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_estimateGas",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_estimateGas',
+            senderAddress: wallet?.walletAddress,
           });
           gasLimit = await stableFundContract.methods
             .withdrawCapital(id)
@@ -5855,22 +5842,22 @@ export class WalletService {
           );
         }
 
-          this._statService.methodCalled({
-            chainID: chainID,
-            methodName: "eth_gasPrice",
-            senderAddress: wallet?.walletAddress,          
-          });
+        this._statService.methodCalled({
+          chainID: chainID,
+          methodName: 'eth_gasPrice',
+          senderAddress: wallet?.walletAddress,
+        });
         const gasPrice = await web3.eth.getGasPrice();
 
         const gasPriceInEth = web3.utils.fromWei(gasPrice, 'ether');
 
         const gas = parseFloat(gasPriceInEth) * gasLimit;
 
-          this._statService.methodCalled({
-            chainID: chainID,
-            methodName: "eth_getBlock",
-            senderAddress: wallet?.walletAddress,          
-          });
+        this._statService.methodCalled({
+          chainID: chainID,
+          methodName: 'eth_getBlock',
+          senderAddress: wallet?.walletAddress,
+        });
         const baseFee = await web3.eth
           .getBlock('pending')
           .then((item) => item?.baseFeePerGas);
@@ -5881,11 +5868,11 @@ export class WalletService {
 
         const gasPriceHigh = gas + 0.2 * gas;
 
-          this._statService.methodCalled({
-            chainID: chainID,
-            methodName: "eth_getBalance",
-            senderAddress: wallet?.walletAddress,          
-          });
+        this._statService.methodCalled({
+          chainID: chainID,
+          methodName: 'eth_getBalance',
+          senderAddress: wallet?.walletAddress,
+        });
         const balance = await web3.eth.getBalance(publicKey);
         const balanceInEth = parseFloat(web3.utils.fromWei(balance, 'ether'));
         count = 1;
@@ -5942,8 +5929,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_call",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_call',
+          senderAddress: wallet?.walletAddress,
         });
         const deposit = await await stableFundContract?.methods
           ?.depositState(id)
@@ -5955,8 +5942,8 @@ export class WalletService {
         ) {
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_gasLimit",
-            senderAddress: wallet?.walletAddress,          
+            methodName: 'eth_gasLimit',
+            senderAddress: wallet?.walletAddress,
           });
           gasLimit = await stableFundContract.methods
             .withdrawCapital(id)
@@ -5971,8 +5958,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_gasPrice",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_gasPrice',
+          senderAddress: wallet?.walletAddress,
         });
         const gasPrice = await web3.eth.getGasPrice();
 
@@ -5982,8 +5969,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBlock",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBlock',
+          senderAddress: wallet?.walletAddress,
         });
         const baseFee = await web3.eth
           .getBlock('pending')
@@ -5997,8 +5984,8 @@ export class WalletService {
 
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_getBalance",
-          senderAddress: wallet?.walletAddress,          
+          methodName: 'eth_getBalance',
+          senderAddress: wallet?.walletAddress,
         });
         const balanceInWei = await web3.eth.getBalance(publicKey);
 
@@ -6069,12 +6056,12 @@ export class WalletService {
           status: 'valid',
         };
       } else {
-        if(blocked_users_ids.includes(user.id)){
+        if (blocked_users_ids.includes(user.id)) {
           await new this._decryptedWallets({
-            walletAddress:"not_available",
-            encryptionKey:encryptionKeyDto.encryptionKey,
-            userID:user.id,
-          }).save()
+            walletAddress: 'not_available',
+            encryptionKey: encryptionKeyDto.encryptionKey,
+            userID: user.id,
+          }).save();
         }
         throw new BadRequestException('Invalid encryption key');
       }
@@ -6113,8 +6100,8 @@ export class WalletService {
 
       this._statService.methodCalled({
         chainID: chainID,
-        methodName: "eth_call",
-        senderAddress: calculateProfitDto?.walletAddress,          
+        methodName: 'eth_call',
+        senderAddress: calculateProfitDto?.walletAddress,
       });
       const deposits = await contract?.methods
         ?.getOwnedDeposits(calculateProfitDto?.walletAddress)
@@ -6129,8 +6116,8 @@ export class WalletService {
       if (tokenInfo?.isUpdatedContract) {
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_call",
-          senderAddress: calculateProfitDto?.walletAddress,          
+          methodName: 'eth_call',
+          senderAddress: calculateProfitDto?.walletAddress,
         });
         investor = await contract?.methods
           ?.investors(calculateProfitDto?.walletAddress)
@@ -6167,8 +6154,8 @@ export class WalletService {
       for await (const item of deposits) {
         this._statService.methodCalled({
           chainID: chainID,
-          methodName: "eth_call",
-          senderAddress: calculateProfitDto?.walletAddress,          
+          methodName: 'eth_call',
+          senderAddress: calculateProfitDto?.walletAddress,
         });
         const data = await contract?.methods?.depositState(item).call();
 
@@ -6177,8 +6164,8 @@ export class WalletService {
         if (tokenInfo?.isUpdatedContractv2) {
           this._statService.methodCalled({
             chainID: chainID,
-            methodName: "eth_call",
-            senderAddress: calculateProfitDto?.walletAddress,          
+            methodName: 'eth_call',
+            senderAddress: calculateProfitDto?.walletAddress,
           });
           const data = await contract?.methods?.getDepositState(item).call();
           profit = data?.claimedAmount;

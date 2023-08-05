@@ -14,7 +14,10 @@ export class TradeService {
 
   async tradeWebhook(data) {
     try {
-      let decodedData: any = verify(data?.data, process.env.TRANSAK_AUTH_TOKEN);
+      let decodedData: any = verify(
+        data?.data,
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBUElfS0VZIjoiM2YwZThmZjQtYjkyYS00ODIzLWExNjMtNjEzYTdiMWM5Y2EwIiwiaWF0IjoxNjkxMDY3MTczLCJleHAiOjE2OTE2NzE5NzN9.Z1YiPJLcjKplD-Cdr2dCfNB8_B9cpqyc9_6IOzaPgZo',
+      );
       console.log('Webhook data is', decodedData);
 
       decodedData = JSON.parse(JSON.stringify(decodedData));

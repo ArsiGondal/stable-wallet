@@ -14,19 +14,24 @@ export class TradeService {
 
   async tradeWebhook(data) {
     try {
-      let decodedData: any = verify(
-        data?.data,
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBUElfS0VZIjoiM2YwZThmZjQtYjkyYS00ODIzLWExNjMtNjEzYTdiMWM5Y2EwIiwiaWF0IjoxNjkxMDY3MTczLCJleHAiOjE2OTE2NzE5NzN9.Z1YiPJLcjKplD-Cdr2dCfNB8_B9cpqyc9_6IOzaPgZo',
-      );
+      debugger;
+
+      // let decodedData: any = verify(
+      //   data?.data,
+      //   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBUElfS0VZIjoiM2YwZThmZjQtYjkyYS00ODIzLWExNjMtNjEzYTdiMWM5Y2EwIiwiaWF0IjoxNjkxMDY3MTczLCJleHAiOjE2OTE2NzE5NzN9.Z1YiPJLcjKplD-Cdr2dCfNB8_B9cpqyc9_6IOzaPgZo',
+      // );
+      let decodedData = data;
       console.log('Webhook data is', decodedData);
 
       decodedData = JSON.parse(JSON.stringify(decodedData));
 
       const dataToSave: TradeHistory = {
-        orderID: decodedData?.webhookData?.id,
-        eventID: decodedData?.eventID,
-        ...decodedData?.webhookData,
+        orderID: decodedData?.status?.id,
+        // eventID: decodedData?.eventID,
+        ...decodedData?.status,
       };
+
+      dataToSave.status = 'COMPLETED';
 
       const coinData = await this._coinModel.findOne({
         coinName: dataToSave.cryptoCurrency,
